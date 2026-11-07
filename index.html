@@ -99,6 +99,27 @@ html[data-theme="dark"] .progress-bar{background:#344256}
 .question-progress{height:5px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0 12px}.question-progress span{display:block;height:100%;background:var(--blue);transition:width .2s}
 #questionStats{margin:4px 0 8px;color:var(--muted);font-size:13px}
 @media(max-width:520px){.dashboard{gap:5px}.metric{padding:9px 5px}.metric strong{font-size:20px}.panel{padding:11px}.choice{min-height:56px}}
+
+/* v3: compact and accessible filter layout */
+.filter-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 7px;font-weight:900;font-size:15px}
+.filter-reset{font-size:12px!important;min-height:34px!important;padding:5px 10px!important}
+.filter-group{border:1px solid var(--line);border-radius:12px;margin:7px 0;background:var(--panel);overflow:hidden}
+.filter-group summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 13px;font-weight:800;font-size:14px;cursor:pointer;min-height:47px}
+.filter-group summary::-webkit-details-marker{display:none}
+.filter-group summary:before{content:'›';font-size:23px;line-height:1;color:var(--muted);transition:transform .15s}
+.filter-group[open] summary:before{transform:rotate(90deg)}
+.filter-current{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filter-group[open] summary{border-bottom:1px solid var(--line)}
+.filter-group .filter-chips{padding:10px!important;margin:0!important;border:0!important;gap:7px}
+.filter-label{font-size:12px;font-weight:800;color:var(--muted);margin:12px 3px 6px}
+.filter-group .filter-label{margin:12px 13px 0}
+.quick-filter-row{border:0!important;gap:7px!important;margin:0 0 9px!important}
+.quick-filter-row .btn{font-size:13px!important;min-height:37px!important;padding:7px 12px!important}
+.study-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}
+.study-actions .btn{background:var(--soft);border-color:var(--line);min-height:44px}
+#search{background:var(--input);color:var(--ink)}
+#list{margin-top:12px}
+@media(max-width:520px){.filter-group summary{padding:11px}.filter-group .filter-chips{padding:9px!important}.quick-filter-row .btn{flex:1 1 auto}}
 </style>
 </head>
 <body>
@@ -123,30 +144,42 @@ html[data-theme="dark"] .progress-bar{background:#344256}
   <div class="panel">
     <button class="btn" id="changeMaterial" type="button" style="float:right;font-size:12px">教材を再読み込み</button>
     <input id="search" type="search" placeholder="検索">
-    <div class="row" id="subjectRow" style="margin-top:8px"></div>
-    <div class="row" id="categoryRow"></div>
-    <div class="row">
-      <button class="btn mode-btn active" onclick="setMode('all')" id="modeAll">全て</button>
+    <div class="filter-title"><span>問題を絞り込む</span><button class="btn filter-reset" type="button" onclick="resetAllFilters()">条件をリセット</button></div>
+    <details class="filter-group" id="subjectDetails" open>
+      <summary><span>科目</span><span class="filter-current" id="subjectCurrent">すべて</span></summary>
+      <div class="row filter-chips" id="subjectRow"></div>
+    </details>
+    <details class="filter-group" id="categoryDetails">
+      <summary><span>章・分野</span><span class="filter-current" id="categoryCurrent">すべて</span></summary>
+      <div class="row filter-chips" id="categoryRow"></div>
+    </details>
+    <div class="filter-label">学習状態</div>
+    <div class="row quick-filter-row">
+      <button class="btn mode-btn active" onclick="setMode('all')" id="modeAll">すべて</button>
       <button class="btn mode-btn" onclick="setMode('wrong')" id="modeWrong">間違い</button>
       <button class="btn mode-btn" onclick="setMode('unanswered')" id="modeUnanswered">未回答</button>
       <button class="btn mode-btn" onclick="setMode('fav')" id="modeFav">お気に入り</button>
-      <button class="btn primary" onclick="startRandom()">ランダム</button>
-      <button class="btn primary" onclick="startReviewSet()">復習セット</button>
     </div>
-    <div class="row">
-      <button class="btn mode-btn sticker-filter s0" onclick="setMode('note0')" id="modeNote0">赤付箋</button>
-      <button class="btn mode-btn sticker-filter s1" onclick="setMode('note1')" id="modeNote1">黄付箋</button>
-      <button class="btn mode-btn sticker-filter s2" onclick="setMode('note2')" id="modeNote2">緑付箋</button>
-      <button class="btn mode-btn sticker-filter s3" onclick="setMode('note3')" id="modeNote3">青付箋</button>
-      <button class="btn mode-btn sticker-filter s4" onclick="setMode('note4')" id="modeNote4">紫付箋</button>
-    </div>
-    <div class="row">
-      <button class="btn mode-btn" onclick="setMode('correctUnsure')" id="modeCorrectUnsure">正解×迷った</button>
-      <button class="btn mode-btn" onclick="setMode('correctUnknown')" id="modeCorrectUnknown">正解×不明</button>
-      <button class="btn mode-btn" onclick="setMode('wrongSure')" id="modeWrongSure">不正解×自信あり</button>
-      <button class="btn mode-btn" onclick="setMode('wrongUnsure')" id="modeWrongUnsure">不正解×迷った</button>
-      <button class="btn mode-btn" onclick="setMode('wrongUnknown')" id="modeWrongUnknown">不正解×不明</button>
-    </div>
+    <details class="filter-group" id="advancedDetails">
+      <summary><span>詳細条件（付箋・自信度）</span><span class="filter-current" id="advancedCurrent">指定なし</span></summary>
+      <div class="filter-label">付箋の色</div>
+      <div class="row filter-chips">
+        <button class="btn mode-btn sticker-filter s0" onclick="setMode('note0')" id="modeNote0">赤付箋</button>
+        <button class="btn mode-btn sticker-filter s1" onclick="setMode('note1')" id="modeNote1">黄付箋</button>
+        <button class="btn mode-btn sticker-filter s2" onclick="setMode('note2')" id="modeNote2">緑付箋</button>
+        <button class="btn mode-btn sticker-filter s3" onclick="setMode('note3')" id="modeNote3">青付箋</button>
+        <button class="btn mode-btn sticker-filter s4" onclick="setMode('note4')" id="modeNote4">紫付箋</button>
+      </div>
+      <div class="filter-label">正誤 × 自信度</div>
+      <div class="row filter-chips">
+        <button class="btn mode-btn" onclick="setMode('correctUnsure')" id="modeCorrectUnsure">正解×迷った</button>
+        <button class="btn mode-btn" onclick="setMode('correctUnknown')" id="modeCorrectUnknown">正解×不明</button>
+        <button class="btn mode-btn" onclick="setMode('wrongSure')" id="modeWrongSure">不正解×自信あり</button>
+        <button class="btn mode-btn" onclick="setMode('wrongUnsure')" id="modeWrongUnsure">不正解×迷った</button>
+        <button class="btn mode-btn" onclick="setMode('wrongUnknown')" id="modeWrongUnknown">不正解×不明</button>
+      </div>
+    </details>
+    <div class="study-actions"><button class="btn" type="button" onclick="startRandom()">ランダム出題</button><button class="btn" type="button" onclick="startReviewSet()">復習セット</button></div>
     <details style="margin-top:12px" id="settingsDetails"><summary style="font-weight:800;cursor:pointer;padding:8px 0">⚙ 設定・バックアップ</summary>
       <div class="settings-grid" style="margin-top:10px">
         <label>表示テーマ
@@ -290,6 +323,20 @@ function setMode(m) {
   renderIndexList();
 }
 
+
+function updateFilterSummaries(){
+  var sc=document.getElementById('subjectCurrent'),cc=document.getElementById('categoryCurrent'),ac=document.getElementById('advancedCurrent');
+  if(sc)sc.textContent=subject;
+  if(cc)cc.textContent=category;
+  var names={note0:'赤付箋',note1:'黄付箋',note2:'緑付箋',note3:'青付箋',note4:'紫付箋',correctUnsure:'正解×迷った',correctUnknown:'正解×不明',wrongSure:'不正解×自信あり',wrongUnsure:'不正解×迷った',wrongUnknown:'不正解×不明'};
+  if(ac)ac.textContent=names[mode]||'指定なし';
+}
+function resetAllFilters(){
+  subject='すべて';category='すべて';
+  document.getElementById('search').value='';
+  renderFilterButtons();setMode('all');
+}
+
 function filteredIndexes() {
   var q = document.getElementById('search').value.toLowerCase();
   var out = [];
@@ -314,6 +361,7 @@ function filteredIndexes() {
 
 function renderIndexList() {
   document.getElementById('headTitle').textContent = '一級建築士 問題集';
+  updateFilterSummaries();
   var indexes = filteredIndexes();
   document.getElementById('headSub').textContent = indexes.length + ' / ' + ITEMS.length + '問';
   renderWeakStats();
