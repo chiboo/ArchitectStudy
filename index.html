@@ -120,6 +120,12 @@ html[data-theme="dark"] .progress-bar{background:#344256}
 #search{background:var(--input);color:var(--ink)}
 #list{margin-top:12px}
 @media(max-width:520px){.filter-group summary{padding:11px}.filter-group .filter-chips{padding:9px!important}.quick-filter-row .btn{flex:1 1 auto}}
+/* v4 */
+.v4-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.v4-tools .btn{flex:1;min-width:125px}
+.v4-note{width:100%;min-height:80px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--input);color:var(--ink);padding:10px;font:inherit}
+.v4-note-wrap{margin:12px 0}.v4-muted{font-size:12px;color:var(--muted)}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.calendar-cell{min-height:42px;padding:5px 2px;border-radius:7px;text-align:center;background:var(--soft);font-size:12px}.calendar-cell b{display:block}.calendar-cell small{font-size:10px;color:var(--muted)}
+.choice.revealed{border-color:var(--blue)}.choice .reveal{display:block;font-size:12px;font-weight:800;color:var(--blue);margin-top:6px}
 </style>
 </head>
 <body>
@@ -141,9 +147,11 @@ html[data-theme="dark"] .progress-bar{background:#344256}
     <button class="btn primary" id="resumeBtn" type="button" onclick="resumeLast()" disabled>▶ 続きから再開</button>
     <button class="btn" type="button" onclick="startWrongSession()">× 間違いを連続演習</button>
   </div>
+  <div class="v4-tools"><button class="btn primary" onclick="startDueSession()">📅 今日の復習 <span id="dueCount"></span></button><button class="btn" onclick="toggleCalendar()">学習カレンダー</button></div>
+  <div class="panel hidden" id="calendarPanel"><div class="filter-title">過去35日の学習記録</div><div class="calendar-grid" id="calendarGrid"></div><div class="v4-muted">v4更新後の採点から集計します。</div></div>
   <div class="panel">
     <button class="btn" id="changeMaterial" type="button" style="float:right;font-size:12px">教材を再読み込み</button>
-    <input id="search" type="search" placeholder="検索">
+    <input id="search" type="search" placeholder="問題文・選択肢・解説まで全文検索">
     <div class="filter-title"><span>問題を絞り込む</span><button class="btn filter-reset" type="button" onclick="resetAllFilters()">条件をリセット</button></div>
     <details class="filter-group" id="subjectDetails" open>
       <summary><span>科目</span><span class="filter-current" id="subjectCurrent">すべて</span></summary>
@@ -187,6 +195,8 @@ html[data-theme="dark"] .progress-bar{background:#344256}
             <option value="system">端末の設定に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option>
           </select>
         </label>
+        <label><input type="checkbox" id="shuffleChoices" onchange="setShuffle(this.checked)" style="width:auto;min-height:0"> 選択肢をシャッフルする</label>
+        <div class="v4-muted">1問1答は「正答として選ぶ番号か」を確認する練習です。各記述の真偽判定ではありません。</div>
         <div class="backup-actions">
           <button class="btn primary" type="button" onclick="exportBackup()">バックアップ保存</button>
           <button class="btn" type="button" onclick="document.getElementById('backupFile').click()">バックアップ復元</button>
@@ -214,6 +224,7 @@ html[data-theme="dark"] .progress-bar{background:#344256}
     <div class="history" id="historyPills"></div>
   </div>
   <div class="prompt" id="prompt"></div>
+  <div class="v4-tools"><button class="btn" id="oneByOneBtn" onclick="toggleOneByOne()">1問1答モード：OFF</button><span class="v4-muted" id="oneByOneHint"></span></div>
   <div id="choices"></div>
   <div class="panel" style="text-align:center">
     <div class="confidence-row" id="confidenceRow"></div>
@@ -221,6 +232,7 @@ html[data-theme="dark"] .progress-bar{background:#344256}
     <button class="btn" onclick="showExplanationOnly()">解説を見る</button>
     <button class="btn" onclick="toggleFav()" id="favBtn">お気に入り</button>
     <div class="sticker-row" id="stickerRow"></div>
+    <div class="v4-note-wrap"><label for="questionMemo"><b>📝 この問題のメモ</b></label><textarea id="questionMemo" class="v4-note" placeholder="覚えたいポイントや間違えた理由を記録" oninput="saveMemo()"></textarea><div class="v4-muted" id="memoStatus">自動保存</div></div>
   </div>
   <div class="result" id="resultBox">
     <div class="result-main" id="resultMain"></div>
@@ -247,6 +259,8 @@ var ITEMS = [];
 var SUBJECTS = ["計画", "環境設備", "法規", "構造", "施工"];
 var CATEGORIES = ["第1章_建築基本計画(計画)", "本試験にチャレンジ!!_2025年度(計画)", "第2章_住宅建築計画(計画)", "第3章_公共建築計画(計画)", "第4章_商業建築計画(計画)", "第5章_公共・商業建築計画融合(計画)", "第6章_建築計画一般(計画)", "第7章_建築積算(計画)", "第8章_建築生産(計画)", "第9章_都市計画(計画)", "第10章_建築史(計画)", "第1章_環境(環境・設備)", "本試験にチャレンジ!!_2025年度(環境・設備)", "第2章_換気(環境・設備)", "第3章_伝熱・結露(環境・設備)", "第4章_日照・日影・日射(環境・設備)", "第5章_採光（昼光・照明）(環境・設備)", "第6章_色彩(環境・設備)", "第7章_音響(環境・設備)", "第8章_環境工学融合(環境・設備)", "第9章_空気調和設備(環境・設備)", "第10章_給排水衛生設備(環境・設備)", "第11章_電気・輸送設備(環境・設備)", "第12章_照明設備(環境・設備)", "第13章_消火・防災設備(環境・設備)", "第14章_環境・設備融合(環境・設備)", "第1章_総則(法規)", "本試験にチャレンジ!!_2025年度(法規)", "第2章_一般構造(法規)", "第3章_構造強度(法規)", "第4章_防火規定(法規)", "第5章_避難規定、建築設備(法規)", "第6章_都市計画区域等の制限(法規)", "第7章_建築協定、雑則等(法規)", "第8章_建築士法、職業倫理(法規)", "第9章_その他の関係法令(法規)", "第1章_力のつり合い・反力(構造)", "第2章_静定構造物の反力(構造)", "第3章_断面の性質(構造)", "第4章_応力度・座屈・変形(構造)", "第5章_不静定構造物の応力(構造)", "第6章_振動・構造物の崩壊(構造)", "第7章_一次設計(構造)", "第8章_構造計算・構造計画(構造)", "第9章_木質構造(構造)", "第10章_鉄骨構造(構造)", "第11章_鉄筋コンクリート構造(構造)", "第12章_壁構造・プレストレストコンクリート構造(構造)", "第13章_合成構造・混合構造(構造)", "第14章_制振構造・免震構造(構造)", "第15章_地盤・基礎構造(構造)", "各種構造融合問題(構造)", "第1章_施工業務(施工)", "本試験にチャレンジ!!_2025年度(施工)", "第2章_施工計画(施工)", "第3章_施工管理(施工)", "第4章_仮設工事(施工)", "第5章_地盤調査(施工)", "第6章_土工事・山留め工事(施工)", "第7章_基礎・地業工事(施工)", "第8章_鉄筋工事(施工)", "第9章_型枠工事(施工)", "第10章_コンクリート工事(施工)", "第11章_プレキャスト鉄筋コンクリート工事(施工)", "第12章_鉄骨工事(施工)", "第13章_仕上工事(施工)", "第14章_改修工事(施工)", "第15章_設備工事(施工)", "融合問題対策(施工)"];
 var mode = 'all';
+var oneByOne=false;
+var searchCache=new Map();
 var STICKERS = [
   {name:'赤', cls:'s0'}, {name:'黄', cls:'s1'}, {name:'緑', cls:'s2'}, {name:'青', cls:'s3'}, {name:'紫', cls:'s4'}
 ];
@@ -337,6 +351,14 @@ function resetAllFilters(){
   renderFilterButtons();setMode('all');
 }
 
+function plainHtml(html){var el=document.createElement('div');el.innerHTML=String(html||'');return el.textContent||'';}
+function searchable(it){
+  var key=String(it.id), cached=searchCache.get(key);if(cached)return cached;
+  var chunks=[it.title,it.category,it.subject,it.search,it.prompt,plainHtml(it.prompt_html)];
+  (it.choices||[]).forEach(function(ch){chunks.push(plainHtml(ch.html));});
+  (it.explanations||[]).forEach(function(ex){chunks.push(plainHtml(ex.html));});
+  var value=chunks.join(' ').toLowerCase();searchCache.set(key,value);return value;
+}
 function filteredIndexes() {
   var q = document.getElementById('search').value.toLowerCase();
   var out = [];
@@ -353,7 +375,7 @@ function filteredIndexes() {
     if(mode === 'wrongSure') hit = hit && status(it) === 'incorrect' && confidenceOf(it) === 'sure';
     if(mode === 'wrongUnsure') hit = hit && status(it) === 'incorrect' && confidenceOf(it) === 'unsure';
     if(mode === 'wrongUnknown') hit = hit && status(it) === 'incorrect' && confidenceOf(it) === 'unknown';
-    if(q) hit = hit && ((it.title + ' ' + it.category + ' ' + it.search).toLowerCase().indexOf(q) >= 0);
+    if(q) hit = hit && (searchable(it).indexOf(q) >= 0);
     if(hit) out.push(i);
   });
   return out;
@@ -485,6 +507,8 @@ function showIndex() {
   document.getElementById('bottomNav').classList.add('hidden');
   renderFilterButtons();
   renderIndexList();
+  renderDueCount();
+  renderCalendar();
   window.scrollTo(0,0);
 }
 
@@ -508,13 +532,26 @@ function showQuestion(i) {
   renderHistory(it);
   renderStickerControls(it);
   renderConfidenceControls(it);
-
+  document.getElementById('questionMemo').value=localStorage.getItem('archStudyNote_'+it.id)||'';
+  document.getElementById('memoStatus').textContent='自動保存';
+  document.getElementById('oneByOneBtn').textContent='1問1答モード：'+(oneByOne?'ON':'OFF');
+  document.getElementById('oneByOneHint').textContent=oneByOne?'選択肢をタップすると正答指定かを表示（採点履歴には反映しません）':'';
   var choices = document.getElementById('choices');
   choices.innerHTML = '';
-  it.choices.forEach(function(ch){
+  var displayChoices=it.choices.slice();
+  if(localStorage.getItem(SETTINGS_PREFIX+'shuffle')==='1'){
+    for(var k=displayChoices.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=displayChoices[k];displayChoices[k]=displayChoices[j];displayChoices[j]=t;}
+  }
+  displayChoices.forEach(function(ch){
     var div=document.createElement('div'); div.className='choice'; div.dataset.num=ch.num;
     div.innerHTML='<div class="choice-num">'+esc(ch.num)+'.</div><div class="choice-body">'+ch.html+'</div>';
     div.onclick=function(){
+      if(oneByOne){
+        var old=div.querySelector('.reveal');if(old)return;
+        var span=document.createElement('span');span.className='reveal';
+        span.textContent=it.correct.map(String).includes(String(ch.num))?'✓ 正答として選ぶ選択肢':'— 正答として選ばない選択肢';
+        div.classList.add('revealed');div.querySelector('.choice-body').appendChild(span);return;
+      }
       if (it.correct.length <= 1) {
         selected = {};
         Array.prototype.forEach.call(choices.querySelectorAll('.choice'), function(el){ el.classList.remove('selected'); });
@@ -641,6 +678,7 @@ function arraysEqual(a,b) {
 }
 
 function grade() {
+  if(oneByOne){alert('1問1答モード中は採点履歴を記録しません。通常モードに戻して採点してください。');return;}
   var it=ITEMS[current];
   var chosen=Object.keys(selected).filter(function(k){return selected[k];});
   if(!chosen.length) { alert('選択肢を選んでください'); return; }
@@ -661,7 +699,14 @@ function grade() {
   previous.attempts++;
   if(ok) previous.correctAttempts++;
   previous.time = new Date().toISOString();
+  // Simple interval review: wrong=1 day, correct streak=3,7,14,30 days.
+  previous.reviewStreak=ok?(Math.max(0,Number(previous.reviewStreak)||0)+1):0;
+  var days=ok?[0,3,7,14,30][Math.min(previous.reviewStreak,4)]:1;
+  previous.reviewDue=new Date(Date.now()+days*86400000).toISOString();
   localStorage.setItem(itemKey(it), JSON.stringify(previous));
+  var dateKey=localDay(new Date()),calKey=SETTINGS_PREFIX+'calendar_'+dateKey;
+  var day=JSON.parse(localStorage.getItem(calKey)||'{"total":0,"correct":0}');
+  day.total++;if(ok)day.correct++;localStorage.setItem(calKey,JSON.stringify(day));
   renderHistory(it);
   var c=countsOf(it);
   document.getElementById('questionStats').textContent=(orderPos+1)+' / '+order.length+'問  ·  累計 '+c.total+'回 · 正答率 '+Math.round(c.ok*100/c.total)+'%';
@@ -710,7 +755,7 @@ function startReviewSet() {
   ITEMS.forEach(function(it, i){
     if(subject !== 'すべて' && it.subject !== subject) return;
     if(category !== 'すべて' && it.category !== category) return;
-    if(q && ((it.title + ' ' + it.category + ' ' + it.search).toLowerCase().indexOf(q) < 0)) return;
+    if(q && (searchable(it).indexOf(q) < 0)) return;
     var score = reviewScore(it);
     if(score > 0) pool.push({i:i, score:score});
   });
@@ -766,7 +811,7 @@ function renderDashboard(){
   '<div class="metric"><strong>'+(answered?Math.round(correct/answered*100):0)+'%</strong><span>直近の正答率</span></div>'+
   '<div class="metric"><strong>'+wrong+'</strong><span>復習待ち</span></div>';
 }
-function backupKeys(){return Object.keys(localStorage).filter(function(k){return k.indexOf('archStudy_')===0||k.indexOf('archStudyFav_')===0||k.indexOf('archStudySticker_')===0||k.indexOf(SETTINGS_PREFIX)===0;});}
+function backupKeys(){return Object.keys(localStorage).filter(function(k){return k.indexOf('archStudy_')===0||k.indexOf('archStudyFav_')===0||k.indexOf('archStudySticker_')===0||k.indexOf('archStudyNote_')===0||k.indexOf(SETTINGS_PREFIX)===0;});}
 function exportBackup(){
   try{
     var entries={};backupKeys().forEach(function(k){entries[k]=localStorage.getItem(k);});
@@ -783,7 +828,7 @@ async function importBackup(event){
     if(!data||data.format!=='architect-study-progress'||![2].includes(data.version)||!data.entries||typeof data.entries!=='object'||Array.isArray(data.entries))throw Error('このアプリのバックアップではありません');
     var entries=Object.entries(data.entries);
     if(entries.length>10000)throw Error('データ件数が多すぎます');
-    for(var pair of entries){if(!/^(archStudy_|archStudyFav_|archStudySticker_|archStudySettings_)/.test(pair[0])||typeof pair[1]!=='string')throw Error('不正なバックアップ内容です');}
+    for(var pair of entries){if(!/^(archStudy_|archStudyFav_|archStudySticker_|archStudyNote_|archStudySettings_)/.test(pair[0])||typeof pair[1]!=='string')throw Error('不正なバックアップ内容です');}
     if(!confirm('学習記録・付箋・お気に入り・設定をバックアップの内容で置き換えます。現在の記録は消えるため、先にバックアップ保存することをおすすめします。続けますか？'))return;
     // Validate capacity before touching existing data.
     var staging=SETTINGS_PREFIX+'import_test';localStorage.setItem(staging,JSON.stringify(data.entries));localStorage.removeItem(staging);
@@ -796,9 +841,39 @@ async function importBackup(event){
       Object.entries(previousEntries).forEach(function(pair){localStorage.setItem(pair[0],pair[1]);});
       throw writeError;
     }
-    applyTheme();showIndex();alert('復元が完了しました。教材データは変更していません。');
+    applyTheme();initV4();showIndex();alert('復元が完了しました。教材データは変更していません。');
   }catch(e){alert('復元に失敗しました: '+e.message);}
   finally{event.target.value='';}
+}
+function localDay(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function saveMemo(){
+  if(!ITEMS[current])return;
+  var v=document.getElementById('questionMemo').value,k='archStudyNote_'+ITEMS[current].id;
+  try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);document.getElementById('memoStatus').textContent='保存済み';}
+  catch(e){document.getElementById('memoStatus').textContent='保存失敗：空き容量を確認';}
+}
+function setShuffle(v){localStorage.setItem(SETTINGS_PREFIX+'shuffle',v?'1':'0');if(!document.getElementById('questionView').classList.contains('hidden'))showQuestion(current);}
+function toggleOneByOne(){oneByOne=!oneByOne;showQuestion(current);}
+function initV4(){document.getElementById('shuffleChoices').checked=localStorage.getItem(SETTINGS_PREFIX+'shuffle')==='1';}
+function dueIndexes(){var now=Date.now();return ITEMS.map(function(it,i){return {it:it,i:i};}).filter(function(x){var d=saved(x.it);return d.reviewDue&&Date.parse(d.reviewDue)<=now;}).map(function(x){return x.i;});}
+function renderDueCount(){document.getElementById('dueCount').textContent='('+dueIndexes().length+'問)';}
+function startDueSession(){
+  var due=new Set(dueIndexes()),pool=filteredIndexes().filter(function(i){return due.has(i);});
+  if(!pool.length){alert('現在の絞り込み条件に該当する復習期限の問題はありません');return;}
+  order=pool;orderPos=0;showQuestion(order[0]);
+}
+function toggleCalendar(){document.getElementById('calendarPanel').classList.toggle('hidden');renderCalendar();}
+function renderCalendar(){
+  var el=document.getElementById('calendarGrid');if(!el)return;el.innerHTML='';
+  for(var n=34;n>=0;n--){
+    var d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-n);
+    var date=localDay(d),value=JSON.parse(localStorage.getItem(SETTINGS_PREFIX+'calendar_'+date)||'{"total":0,"correct":0}');
+    var cell=document.createElement('div');cell.className='calendar-cell';
+    if(value.total)cell.style.boxShadow='inset 0 0 0 2px var(--green)';
+    cell.title=date+'：'+value.total+'問 / 正解'+value.correct+'問';
+    cell.innerHTML='<b>'+String(d.getMonth()+1)+'/'+String(d.getDate())+'</b><small>'+value.total+'問</small>';
+    el.appendChild(cell);
+  }
 }
 document.getElementById('search').addEventListener('input', renderIndexList);
 /* 起動時に教材読み込み後 showIndex を実行 */
@@ -844,7 +919,7 @@ document.getElementById('search').addEventListener('input', renderIndexList);
     const parsed=JSON.parse(txt);
     if(!Array.isArray(parsed)||!parsed.length||!parsed[0].choices||!parsed[0].prompt)throw new Error('教材ファイルの形式が違います');
     if(save){status.textContent='教材を端末に保存しています…';await saveStored(file);}
-    ITEMS=parsed;
+    ITEMS=parsed;searchCache.clear();initV4();
     document.getElementById('headSub').textContent=ITEMS.length+'問';
     screen.classList.add('hidden');index.classList.remove('hidden');
     showIndex();
