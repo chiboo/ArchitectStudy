@@ -73,6 +73,32 @@ input{width:100%;border:1px solid var(--line);border-radius:8px;min-height:48px;
 .bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#ffffffef;backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:9px 9px calc(9px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .hidden{display:none!important}
 @media(max-width:520px){html,body{font-size:16px}main{padding:10px}.btn{font-size:14px;padding:8px}.panel{padding:9px}.panel .row .btn{min-height:28px;padding:4px 7px;font-size:11.5px}.choice{grid-template-columns:30px 1fr;padding:10px}.result-main{font-size:26px}.history-dot{width:20px;height:20px;font-size:12px}}
+
+/* v2: readable responsive layout and themes */
+:root{--input:#fff;--chip:#f2f4f7;--prompt-bg:#263244;--prompt-ink:#fff}
+html[data-theme="dark"]{color-scheme:dark;--bg:#101722;--panel:#1b2533;--ink:#edf2fa;--muted:#abb9cb;--line:#3a4759;--blue:#70a8ff;--red:#ff8585;--green:#65dba5;--amber:#ffd17d;--soft:#22344f;--shadow:0 8px 24px rgba(0,0,0,.2);--input:#253246;--chip:#2c3b50;--prompt-bg:#2c3e57;--prompt-ink:#fff}
+html[data-theme="dark"] header,html[data-theme="dark"] .bottom{background:rgba(23,32,46,.96)}
+html[data-theme="dark"] .btn,html[data-theme="dark"] input,html[data-theme="dark"] .item,html[data-theme="dark"] .choice,html[data-theme="dark"] .explanation,html[data-theme="dark"] .result,html[data-theme="dark"] .progress-line,html[data-theme="dark"] .stats-toggle,html[data-theme="dark"] .history-dot,html[data-theme="dark"] .sticker-btn.clear{background:var(--input);color:var(--ink)}
+html[data-theme="dark"] .btn.primary{background:#306bd2;color:#fff;border-color:#306bd2}
+html[data-theme="dark"] .btn.active,html[data-theme="dark"] .choice.selected{background:#29456a;border-color:#79aaff;color:#fff;outline-color:#79aaff}
+html[data-theme="dark"] .prompt{background:var(--prompt-bg);color:var(--prompt-ink)}
+html[data-theme="dark"] .badge,html[data-theme="dark"] .choice-num,html[data-theme="dark"] .mini-tag{background:var(--chip);color:var(--ink)}
+html[data-theme="dark"] .weak-line{background:#392b33;border-color:#704250}
+html[data-theme="dark"] .row{border-bottom-color:var(--line)}
+html[data-theme="dark"] #importScreen{background:var(--panel)!important;border-color:var(--line)!important}
+html[data-theme="dark"] #importScreen p{color:var(--ink)}
+html[data-theme="dark"] .progress-bar{background:#344256}
+.panel{border-radius:15px;padding:15px}.item,.choice,.explanation,.result{border-radius:13px}.prompt{border-radius:13px;line-height:1.8}.btn{border-radius:10px}
+.dashboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.metric{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px;text-align:center}
+.metric strong{display:block;font-size:23px;line-height:1.25}.metric span{font-size:11px;color:var(--muted)}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.quick-actions .btn{width:100%;min-height:48px}
+.settings-grid{display:grid;gap:10px}.settings-grid select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--input);color:var(--ink);font-size:16px}
+.backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.question-progress{height:5px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0 12px}.question-progress span{display:block;height:100%;background:var(--blue);transition:width .2s}
+#questionStats{margin:4px 0 8px;color:var(--muted);font-size:13px}
+@media(max-width:520px){.dashboard{gap:5px}.metric{padding:9px 5px}.metric strong{font-size:20px}.panel{padding:11px}.choice{min-height:56px}}
 </style>
 </head>
 <body>
@@ -89,6 +115,11 @@ input{width:100%;border:1px solid var(--line);border-radius:8px;min-height:48px;
 <p style="font-size:13px;color:#667085">教材はGitHubにアップロードしないでください。ブラウザのデータ削除や端末変更時には再読み込みが必要です。</p>
 </section>
 <main id="indexView" class="hidden">
+  <div class="dashboard" id="dashboard"></div>
+  <div class="quick-actions">
+    <button class="btn primary" id="resumeBtn" type="button" onclick="resumeLast()" disabled>▶ 続きから再開</button>
+    <button class="btn" type="button" onclick="startWrongSession()">× 間違いを連続演習</button>
+  </div>
   <div class="panel">
     <button class="btn" id="changeMaterial" type="button" style="float:right;font-size:12px">教材を再読み込み</button>
     <input id="search" type="search" placeholder="検索">
@@ -116,6 +147,21 @@ input{width:100%;border:1px solid var(--line);border-radius:8px;min-height:48px;
       <button class="btn mode-btn" onclick="setMode('wrongUnsure')" id="modeWrongUnsure">不正解×迷った</button>
       <button class="btn mode-btn" onclick="setMode('wrongUnknown')" id="modeWrongUnknown">不正解×不明</button>
     </div>
+    <details style="margin-top:12px" id="settingsDetails"><summary style="font-weight:800;cursor:pointer;padding:8px 0">⚙ 設定・バックアップ</summary>
+      <div class="settings-grid" style="margin-top:10px">
+        <label>表示テーマ
+          <select id="themeSelect" onchange="setTheme(this.value)">
+            <option value="system">端末の設定に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option>
+          </select>
+        </label>
+        <div class="backup-actions">
+          <button class="btn primary" type="button" onclick="exportBackup()">バックアップ保存</button>
+          <button class="btn" type="button" onclick="document.getElementById('backupFile').click()">バックアップ復元</button>
+        </div>
+        <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+        <div class="meta">教材データはバックアップに含みません。元の教材JSONも別途保管してください。</div>
+      </div>
+    </details>
     <button class="stats-toggle" onclick="toggleStats()" id="statsToggle">
       <span>学習状況</span><span id="statsToggleMark">＋</span>
     </button>
@@ -128,6 +174,8 @@ input{width:100%;border:1px solid var(--line);border-radius:8px;min-height:48px;
 </main>
 
 <main id="questionView" class="hidden">
+  <div class="question-progress"><span id="questionProgressFill" style="width:0%"></span></div>
+  <div id="questionStats"></div>
   <div class="question-head">
     <div class="section">問題</div>
     <div class="history" id="historyPills"></div>
@@ -185,6 +233,11 @@ function favKey(it){ return 'archStudyFav_' + it.id; }
 function stickerKey(it){ return 'archStudySticker_' + it.id; }
 function saved(it){ try{return JSON.parse(localStorage.getItem(itemKey(it))||'{}');}catch(e){return {};} }
 function historyOf(it){ var d=saved(it); if(Array.isArray(d.history)) return d.history.slice(-5); if(d.selected && d.selected.length) return [!!d.ok]; return []; }
+function countsOf(it){
+  var d=saved(it);
+  if(Number.isInteger(d.attempts) && d.attempts>=0 && Number.isInteger(d.correctAttempts) && d.correctAttempts>=0) return {total:d.attempts,ok:Math.min(d.correctAttempts,d.attempts),exact:true};
+  var h=historyOf(it); return {total:h.length,ok:h.filter(Boolean).length,exact:false};
+}
 function status(it){ var h=historyOf(it); if(!h.length) return 'unanswered'; return h[h.length-1] ? 'correct':'incorrect'; }
 function isFav(it){ return localStorage.getItem(favKey(it)) === '1'; }
 function stickerOf(it){ var v = localStorage.getItem(stickerKey(it)); return v === null ? '' : v; }
@@ -265,6 +318,8 @@ function renderIndexList() {
   document.getElementById('headSub').textContent = indexes.length + ' / ' + ITEMS.length + '問';
   renderWeakStats();
   renderProgressStats();
+  renderDashboard();
+  updateResumeButton();
   var list = document.getElementById('list');
   list.innerHTML = '';
   indexes.forEach(function(i){
@@ -275,7 +330,9 @@ function renderIndexList() {
     var confHtml = confText ? '<span class="mini-tag '+confidenceClass(conf)+'">'+esc(confText)+'</span>' : '';
     var statusText = st === 'correct' ? '正解' : st === 'incorrect' ? '不正解' : '未回答';
     var statusClass = st === 'correct' ? 'status-correct' : st === 'incorrect' ? 'status-incorrect' : 'status-unanswered';
-    var h = historyOf(it);
+     var counts=countsOf(it);
+     var countHtml=counts.total ? '<span class="mini-tag">'+(counts.exact?'累計 ':'直近 ') +counts.total+'回 / '+Math.round(counts.ok*100/counts.total)+'%</span>' : '';
+     var h = historyOf(it);
     var historyHtml = '<span class="item-history">';
     for (var j = 0; j < 5; j++) {
       if (j < h.length) historyHtml += '<span class="history-dot '+(h[j] ? 'ok' : 'ng')+'">'+(h[j] ? '○' : '×')+'</span>';
@@ -286,7 +343,7 @@ function renderIndexList() {
     a.href = '#'; a.className = 'item';
     a.onclick = function(e){e.preventDefault(); order = filteredIndexes(); orderPos = order.indexOf(i); showQuestion(i);};
     a.innerHTML = '<span class="badge '+st+'">'+(st==='correct'?'○':st==='incorrect'?'×':'未')+'</span>' +
-      '<span><b>'+esc(it.title)+'</b><br><span class="meta">'+confHtml+'<span class="mini-tag '+statusClass+'">'+statusText+'</span>'+historyHtml+' '+esc(it.category)+' / 選択肢 '+it.choices.length+'</span></span>' +
+      '<span><b>'+esc(it.title)+'</b><br><span class="meta">'+confHtml+'<span class="mini-tag '+statusClass+'">'+statusText+'</span>'+historyHtml+countHtml+' '+esc(it.category)+' / 選択肢 '+it.choices.length+'</span></span>' +
       '<span>'+mark+'</span>';
     list.appendChild(a);
   });
@@ -385,11 +442,15 @@ function showIndex() {
 
 function showQuestion(i) {
   current = i; selected = {}; answeredVisible = false;
+  saveResume();
   var it = ITEMS[i];
   document.getElementById('indexView').classList.add('hidden');
   document.getElementById('questionView').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
   document.getElementById('headTitle').textContent = it.title;
+  var c=countsOf(it);
+  document.getElementById('questionStats').textContent=(orderPos+1)+' / '+order.length+'問  ·  '+(c.exact?'累計':'直近の記録')+' '+c.total+'回'+(c.total?' · 正答率 '+Math.round(c.ok*100/c.total)+'%':'');
+  document.getElementById('questionProgressFill').style.width=(order.length?((orderPos+1)*100/order.length):0)+'%';
   document.getElementById('headSub').textContent = it.subject + ' / ' + it.category + (it.rank ? ' / ランク ' + it.rank : '');
   document.getElementById('prompt').innerHTML = it.prompt_html || esc(it.prompt);
   document.getElementById('resultBox').style.display='none';
@@ -545,9 +606,17 @@ function grade() {
   previous.correct = it.correct;
   previous.ok = ok;
   previous.history = history;
+  if(!Number.isInteger(previous.attempts) || !Number.isInteger(previous.correctAttempts)){
+    // 古い履歴は直近5回だけ。累計値はこの更新以降を記録する。
+    previous.attempts=0; previous.correctAttempts=0;
+  }
+  previous.attempts++;
+  if(ok) previous.correctAttempts++;
   previous.time = new Date().toISOString();
   localStorage.setItem(itemKey(it), JSON.stringify(previous));
   renderHistory(it);
+  var c=countsOf(it);
+  document.getElementById('questionStats').textContent=(orderPos+1)+' / '+order.length+'問  ·  累計 '+c.total+'回 · 正答率 '+Math.round(c.ok*100/c.total)+'%';
   answeredVisible = true;
   var box=document.getElementById('resultBox'), main=document.getElementById('resultMain');
   box.className='result '+(ok?'ok':'ng'); box.style.display='block';
@@ -603,6 +672,85 @@ function startReviewSet() {
   for(var i=order.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)); var t=order[i]; order[i]=order[j]; order[j]=t;}
   orderPos=0;
   showQuestion(order[0]);
+}
+/* Settings and durable session state: stored only on this device */
+var SETTINGS_PREFIX='archStudySettings_';
+function setTheme(v){
+  if(['system','light','dark'].indexOf(v)<0)v='system';
+  localStorage.setItem(SETTINGS_PREFIX+'theme',v);
+  applyTheme();
+}
+function applyTheme(){
+  var v=localStorage.getItem(SETTINGS_PREFIX+'theme')||'system';
+  var dark=v==='dark'||(v==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  document.getElementById('themeSelect').value=v;
+}
+applyTheme();
+if(window.matchMedia){var mq=window.matchMedia('(prefers-color-scheme: dark)');if(mq.addEventListener)mq.addEventListener('change',applyTheme);}
+function saveResume(){
+  try{localStorage.setItem(SETTINGS_PREFIX+'resume',JSON.stringify({id:ITEMS[current].id,ids:order.map(function(i){return ITEMS[i].id;}),pos:orderPos,time:new Date().toISOString()}));}catch(e){}
+}
+function resumeData(){try{return JSON.parse(localStorage.getItem(SETTINGS_PREFIX+'resume')||'null');}catch(e){return null;}}
+function updateResumeButton(){
+  var d=resumeData(), btn=document.getElementById('resumeBtn');
+  var found=d&&ITEMS.some(function(it){return String(it.id)===String(d.id);});
+  btn.disabled=!found;
+  btn.textContent=found?'▶ 続きから再開':'▶ 続きから再開（記録なし）';
+}
+function resumeLast(){
+  var d=resumeData();if(!d)return;
+  var lookup=new Map(ITEMS.map(function(it,i){return [String(it.id),i];}));
+  order=(Array.isArray(d.ids)?d.ids:[]).map(function(id){return lookup.get(String(id));}).filter(function(i){return i!==undefined;});
+  var i=lookup.get(String(d.id));if(i===undefined){alert('前回の問題が見つかりません');return;}
+  if(!order.includes(i))order=[i];
+  orderPos=order.indexOf(i);showQuestion(i);
+}
+function startWrongSession(){
+  var old=mode;mode='wrong';var pool=filteredIndexes();mode=old;
+  if(!pool.length){alert('現在の科目・章・検索条件に該当する不正解問題がありません');return;}
+  order=pool;orderPos=0;showQuestion(order[0]);
+}
+function renderDashboard(){
+  var answered=0,correct=0,wrong=0;
+  ITEMS.forEach(function(it){var st=status(it);if(st!=='unanswered')answered++;if(st==='correct')correct++;if(st==='incorrect')wrong++;});
+  document.getElementById('dashboard').innerHTML='<div class="metric"><strong>'+answered+'<small> / '+ITEMS.length+'</small></strong><span>解答済み</span></div>'+
+  '<div class="metric"><strong>'+(answered?Math.round(correct/answered*100):0)+'%</strong><span>直近の正答率</span></div>'+
+  '<div class="metric"><strong>'+wrong+'</strong><span>復習待ち</span></div>';
+}
+function backupKeys(){return Object.keys(localStorage).filter(function(k){return k.indexOf('archStudy_')===0||k.indexOf('archStudyFav_')===0||k.indexOf('archStudySticker_')===0||k.indexOf(SETTINGS_PREFIX)===0;});}
+function exportBackup(){
+  try{
+    var entries={};backupKeys().forEach(function(k){entries[k]=localStorage.getItem(k);});
+    var payload={format:'architect-study-progress',version:2,createdAt:new Date().toISOString(),questionCount:ITEMS.length,entries:entries};
+    var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='architect-study-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},60000);
+  }catch(e){alert('バックアップの作成に失敗しました: '+e.message);}
+}
+async function importBackup(event){
+  var file=event.target.files&&event.target.files[0];if(!file)return;
+  try{
+    var data=JSON.parse(await file.text());
+    if(!data||data.format!=='architect-study-progress'||![2].includes(data.version)||!data.entries||typeof data.entries!=='object'||Array.isArray(data.entries))throw Error('このアプリのバックアップではありません');
+    var entries=Object.entries(data.entries);
+    if(entries.length>10000)throw Error('データ件数が多すぎます');
+    for(var pair of entries){if(!/^(archStudy_|archStudyFav_|archStudySticker_|archStudySettings_)/.test(pair[0])||typeof pair[1]!=='string')throw Error('不正なバックアップ内容です');}
+    if(!confirm('学習記録・付箋・お気に入り・設定をバックアップの内容で置き換えます。現在の記録は消えるため、先にバックアップ保存することをおすすめします。続けますか？'))return;
+    // Validate capacity before touching existing data.
+    var staging=SETTINGS_PREFIX+'import_test';localStorage.setItem(staging,JSON.stringify(data.entries));localStorage.removeItem(staging);
+    var previousEntries={};backupKeys().forEach(function(k){previousEntries[k]=localStorage.getItem(k);});
+    try{
+      backupKeys().forEach(function(k){localStorage.removeItem(k);});
+      entries.forEach(function(pair){localStorage.setItem(pair[0],pair[1]);});
+    }catch(writeError){
+      backupKeys().forEach(function(k){localStorage.removeItem(k);});
+      Object.entries(previousEntries).forEach(function(pair){localStorage.setItem(pair[0],pair[1]);});
+      throw writeError;
+    }
+    applyTheme();showIndex();alert('復元が完了しました。教材データは変更していません。');
+  }catch(e){alert('復元に失敗しました: '+e.message);}
+  finally{event.target.value='';}
 }
 document.getElementById('search').addEventListener('input', renderIndexList);
 /* 起動時に教材読み込み後 showIndex を実行 */
