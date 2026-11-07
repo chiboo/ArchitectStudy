@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="建築士問題集">
+<title>一級建築士 問題集</title>
+<style>
+:root{--bg:#f6f8fb;--panel:#fff;--ink:#202733;--muted:#667085;--line:#d7dee8;--blue:#1570ef;--red:#d92d20;--green:#039855;--amber:#b54708;--soft:#eef4ff;--shadow:0 8px 24px rgba(16,24,40,.06)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;font-size:17px;line-height:1.65}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom));overflow-x:hidden}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:calc(9px + env(safe-area-inset-top)) 14px 9px}
+.title{font-weight:900;font-size:19px;line-height:1.25;letter-spacing:0}.sub{color:var(--muted);font-size:12px;margin-top:2px}
+main{max-width:860px;margin:0 auto;padding:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0;box-shadow:var(--shadow)}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;overflow:visible;padding-bottom:5px;border-bottom:1px solid #eef2f6;margin-bottom:7px}
+.row:last-child{border-bottom:0;margin-bottom:0}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;min-height:44px;padding:9px 12px;font-weight:800;font-size:15px}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.danger{background:var(--red);border-color:var(--red);color:#fff}.btn.active{background:#e8f1ff;border-color:#84b8ff;color:#0b5dc7}
+.panel .row .btn{min-height:32px;padding:5px 9px;font-size:12px;white-space:normal;border-radius:999px;box-shadow:none;line-height:1.25}
+input{width:100%;border:1px solid var(--line);border-radius:8px;min-height:48px;padding:10px 12px;font-size:16px;background:#fff;box-shadow:inset 0 1px 0 rgba(16,24,40,.02)}
+.list{display:grid;gap:10px}.item{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 12px 12px 14px;text-decoration:none;color:var(--ink);box-shadow:0 3px 12px rgba(16,24,40,.04)}
+.item:before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:4px;border-radius:0 999px 999px 0;background:#cbd5e1}.item:has(.badge.correct):before{background:var(--green)}.item:has(.badge.incorrect):before{background:var(--red)}
+.badge{min-width:36px;height:36px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;background:#eef2f6;color:#475467}
+.badge.correct{background:#ecfdf3;color:var(--green)}.badge.incorrect{background:#fef3f2;color:var(--red)}
+.meta{font-size:12px;color:var(--muted);line-height:1.45}
+.prompt{background:#263244;color:#fff;border-radius:8px;padding:15px;margin:8px 0 12px;font-weight:800;white-space:pre-wrap;overflow:hidden;box-shadow:var(--shadow)}
+.choice{background:#fff;border:1px solid var(--line);border-radius:8px;margin:10px 0;padding:13px;display:grid;grid-template-columns:36px 1fr;gap:8px;box-shadow:0 3px 12px rgba(16,24,40,.04)}
+.choice.selected{outline:3px solid #f04438;background:#fff7f7;border-color:#fda29b}.choice-num{width:30px;height:30px;border-radius:999px;background:#eef2f6;display:flex;align-items:center;justify-content:center;font-weight:900;color:#475467;line-height:1}.choice-body{min-width:0;overflow-wrap:anywhere}
+.prompt table,.choice-body table,.explanation table{width:100%!important;border-collapse:collapse}.prompt img,.choice-body img,.explanation img{max-width:100%;height:auto;display:block;margin:8px auto}
+.question-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 8px}
+.question-head .section{margin:0}
+.section{font-weight:900;margin:16px 0 8px;border-left:5px solid var(--blue);padding-left:8px}
+.history{display:inline-flex;align-items:center;gap:4px;min-height:24px}
+.history-dot{width:22px;height:22px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;border:1px solid var(--line);background:#fff;color:#98a2b3}
+.history-dot.ok{background:#ecfdf3;color:var(--green);border-color:#abefc6}.history-dot.ng{background:#fef3f2;color:var(--red);border-color:#fecdca}
+.item-history{display:inline-flex;align-items:center;gap:3px;margin-left:2px;vertical-align:middle}
+.item-history .history-dot{width:17px;height:17px;font-size:10px}
+.sticker-row{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:10px}
+.sticker-btn{width:34px;height:34px;border-radius:999px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);font-size:0}
+.sticker-btn.active{box-shadow:0 0 0 3px #1d2939}
+.sticker-btn.clear{width:auto;border-radius:999px;background:#fff;color:var(--muted);font-size:12px;font-weight:800;padding:0 10px}
+.sticker-filter{position:relative;padding-left:22px!important}
+.sticker-filter:before,.sticker-mark{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.16)}
+.sticker-filter:before{position:absolute;left:7px;top:50%;transform:translateY(-50%)}
+.sticker-mark{justify-self:end}
+.s0,.s0:before{background:#ffdad6}.s1,.s1:before{background:#fff0a8}.s2,.s2:before{background:#c7f7d4}.s3,.s3:before{background:#d7e8ff}.s4,.s4:before{background:#eadcff}
+.confidence-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:0 0 10px}
+.confidence-row .btn{min-height:38px;font-size:13px;padding:6px 8px}
+.answer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.weak-stats{display:grid;gap:7px;margin-top:8px}
+.weak-line{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:13px;background:#fff7f7;border:1px solid #fecdca;border-radius:8px;padding:9px 10px}
+.weak-rate{font-weight:900;color:var(--red)}
+.progress-stats{display:grid;gap:7px;margin-top:10px}
+.progress-line{background:#fbfcff;border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+.progress-top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:13px;font-weight:800}
+.progress-bar{height:9px;background:#eef2f6;border-radius:999px;overflow:hidden;display:flex;margin-top:7px}
+.progress-ok{background:#12b76a}.progress-ng{background:#f04438}.progress-rest{background:#e4e7ec}
+.stats-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;margin-top:4px;border:1px solid var(--line);background:#fbfcff;color:var(--ink);border-radius:8px;min-height:42px;padding:8px 11px;font-weight:900;font-size:13px}
+.stats-toggle span:last-child{color:var(--muted);font-size:15px}
+.stats-panel{display:grid;gap:8px;margin-top:8px}
+.stats-panel.hidden{display:none!important}
+.mini-tag{display:inline-flex;align-items:center;border-radius:999px;background:#f2f4f7;color:#475467;padding:1px 7px;margin-right:4px;font-size:11px;font-weight:800}
+.mini-tag.warn{background:#fff7e6;color:#b54708}.mini-tag.bad{background:#fef3f2;color:#b42318}.mini-tag.good{background:#ecfdf3;color:#027a48}
+.mini-tag.status-correct{background:#ecfdf3;color:#027a48}.mini-tag.status-incorrect{background:#fef3f2;color:#b42318}.mini-tag.status-unanswered{background:#f2f4f7;color:#475467}
+.result{display:none;text-align:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:15px;margin:12px 0;box-shadow:var(--shadow)}.result.ok{border-top:5px solid var(--green)}.result.ng{border-top:5px solid var(--red)}
+.result-main{font-size:28px;font-weight:900}.result-main.ok{color:var(--green)}.result-main.ng{color:var(--red)}
+.explanation{background:#fff;border:1px solid var(--line);border-radius:8px;padding:13px;margin:10px 0;overflow:hidden;box-shadow:0 3px 12px rgba(16,24,40,.04)}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#ffffffef;backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:9px 9px calc(9px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.hidden{display:none!important}
+@media(max-width:520px){html,body{font-size:16px}main{padding:10px}.btn{font-size:14px;padding:8px}.panel{padding:9px}.panel .row .btn{min-height:28px;padding:4px 7px;font-size:11.5px}.choice{grid-template-columns:30px 1fr;padding:10px}.result-main{font-size:26px}.history-dot{width:20px;height:20px;font-size:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="title" id="headTitle">一級建築士 問題集</div>
+  <div class="sub" id="headSub">1220問</div>
+</header>
+
+<section id="importScreen" style="max-width:700px;margin:24px auto;padding:20px;background:white;border:1px solid #d7dee8;border-radius:12px;box-shadow:0 8px 24px #10284010">
+<h2 style="margin:0 0 10px">一級建築士 問題集</h2>
+<p id="importStatus">保存済みの教材を確認しています…</p>
+<p>初回のみ、このiPhoneに保存した <b>architect_questions.json</b> を選択してください。教材は外部に送信されず、この端末のブラウザ内に保存されます。</p>
+<input id="importFile" type="file" accept=".json,application/json" style="margin:10px 0">
+<p style="font-size:13px;color:#667085">教材はGitHubにアップロードしないでください。ブラウザのデータ削除や端末変更時には再読み込みが必要です。</p>
+</section>
+<main id="indexView" class="hidden">
+  <div class="panel">
+    <button class="btn" id="changeMaterial" type="button" style="float:right;font-size:12px">教材を再読み込み</button>
+    <input id="search" type="search" placeholder="検索">
+    <div class="row" id="subjectRow" style="margin-top:8px"></div>
+    <div class="row" id="categoryRow"></div>
+    <div class="row">
+      <button class="btn mode-btn active" onclick="setMode('all')" id="modeAll">全て</button>
+      <button class="btn mode-btn" onclick="setMode('wrong')" id="modeWrong">間違い</button>
+      <button class="btn mode-btn" onclick="setMode('unanswered')" id="modeUnanswered">未回答</button>
+      <button class="btn mode-btn" onclick="setMode('fav')" id="modeFav">お気に入り</button>
+      <button class="btn primary" onclick="startRandom()">ランダム</button>
+      <button class="btn primary" onclick="startReviewSet()">復習セット</button>
+    </div>
+    <div class="row">
+      <button class="btn mode-btn sticker-filter s0" onclick="setMode('note0')" id="modeNote0">赤付箋</button>
+      <button class="btn mode-btn sticker-filter s1" onclick="setMode('note1')" id="modeNote1">黄付箋</button>
+      <button class="btn mode-btn sticker-filter s2" onclick="setMode('note2')" id="modeNote2">緑付箋</button>
+      <button class="btn mode-btn sticker-filter s3" onclick="setMode('note3')" id="modeNote3">青付箋</button>
+      <button class="btn mode-btn sticker-filter s4" onclick="setMode('note4')" id="modeNote4">紫付箋</button>
+    </div>
+    <div class="row">
+      <button class="btn mode-btn" onclick="setMode('correctUnsure')" id="modeCorrectUnsure">正解×迷った</button>
+      <button class="btn mode-btn" onclick="setMode('correctUnknown')" id="modeCorrectUnknown">正解×不明</button>
+      <button class="btn mode-btn" onclick="setMode('wrongSure')" id="modeWrongSure">不正解×自信あり</button>
+      <button class="btn mode-btn" onclick="setMode('wrongUnsure')" id="modeWrongUnsure">不正解×迷った</button>
+      <button class="btn mode-btn" onclick="setMode('wrongUnknown')" id="modeWrongUnknown">不正解×不明</button>
+    </div>
+    <button class="stats-toggle" onclick="toggleStats()" id="statsToggle">
+      <span>学習状況</span><span id="statsToggleMark">＋</span>
+    </button>
+    <div class="stats-panel hidden" id="statsPanel">
+      <div class="weak-stats" id="weakStats"></div>
+      <div class="progress-stats" id="progressStats"></div>
+    </div>
+  </div>
+  <div class="list" id="list"></div>
+</main>
+
+<main id="questionView" class="hidden">
+  <div class="question-head">
+    <div class="section">問題</div>
+    <div class="history" id="historyPills"></div>
+  </div>
+  <div class="prompt" id="prompt"></div>
+  <div id="choices"></div>
+  <div class="panel" style="text-align:center">
+    <div class="confidence-row" id="confidenceRow"></div>
+    <button class="btn primary" onclick="grade()">採点</button>
+    <button class="btn" onclick="showExplanationOnly()">解説を見る</button>
+    <button class="btn" onclick="toggleFav()" id="favBtn">お気に入り</button>
+    <div class="sticker-row" id="stickerRow"></div>
+  </div>
+  <div class="result" id="resultBox">
+    <div class="result-main" id="resultMain"></div>
+    <div id="resultSub"></div>
+  </div>
+  <div id="explanationBlock" class="hidden">
+    <div class="section">解説</div>
+    <div id="explanations"></div>
+    <div class="answer-actions">
+      <button class="btn" onclick="retryQuestion()">もう一度解く</button>
+      <button class="btn primary" onclick="nextQ()">次へ</button>
+    </div>
+  </div>
+</main>
+
+<nav class="bottom hidden" id="bottomNav">
+  <button class="btn" onclick="prevQ()">前へ</button>
+  <button class="btn" onclick="showIndex()">一覧</button>
+  <button class="btn primary" onclick="rightAction()" id="rightBtn">採点</button>
+</nav>
+
+<script>
+var ITEMS = [];
+var SUBJECTS = ["計画", "環境設備", "法規", "構造", "施工"];
+var CATEGORIES = ["第1章_建築基本計画(計画)", "本試験にチャレンジ!!_2025年度(計画)", "第2章_住宅建築計画(計画)", "第3章_公共建築計画(計画)", "第4章_商業建築計画(計画)", "第5章_公共・商業建築計画融合(計画)", "第6章_建築計画一般(計画)", "第7章_建築積算(計画)", "第8章_建築生産(計画)", "第9章_都市計画(計画)", "第10章_建築史(計画)", "第1章_環境(環境・設備)", "本試験にチャレンジ!!_2025年度(環境・設備)", "第2章_換気(環境・設備)", "第3章_伝熱・結露(環境・設備)", "第4章_日照・日影・日射(環境・設備)", "第5章_採光（昼光・照明）(環境・設備)", "第6章_色彩(環境・設備)", "第7章_音響(環境・設備)", "第8章_環境工学融合(環境・設備)", "第9章_空気調和設備(環境・設備)", "第10章_給排水衛生設備(環境・設備)", "第11章_電気・輸送設備(環境・設備)", "第12章_照明設備(環境・設備)", "第13章_消火・防災設備(環境・設備)", "第14章_環境・設備融合(環境・設備)", "第1章_総則(法規)", "本試験にチャレンジ!!_2025年度(法規)", "第2章_一般構造(法規)", "第3章_構造強度(法規)", "第4章_防火規定(法規)", "第5章_避難規定、建築設備(法規)", "第6章_都市計画区域等の制限(法規)", "第7章_建築協定、雑則等(法規)", "第8章_建築士法、職業倫理(法規)", "第9章_その他の関係法令(法規)", "第1章_力のつり合い・反力(構造)", "第2章_静定構造物の反力(構造)", "第3章_断面の性質(構造)", "第4章_応力度・座屈・変形(構造)", "第5章_不静定構造物の応力(構造)", "第6章_振動・構造物の崩壊(構造)", "第7章_一次設計(構造)", "第8章_構造計算・構造計画(構造)", "第9章_木質構造(構造)", "第10章_鉄骨構造(構造)", "第11章_鉄筋コンクリート構造(構造)", "第12章_壁構造・プレストレストコンクリート構造(構造)", "第13章_合成構造・混合構造(構造)", "第14章_制振構造・免震構造(構造)", "第15章_地盤・基礎構造(構造)", "各種構造融合問題(構造)", "第1章_施工業務(施工)", "本試験にチャレンジ!!_2025年度(施工)", "第2章_施工計画(施工)", "第3章_施工管理(施工)", "第4章_仮設工事(施工)", "第5章_地盤調査(施工)", "第6章_土工事・山留め工事(施工)", "第7章_基礎・地業工事(施工)", "第8章_鉄筋工事(施工)", "第9章_型枠工事(施工)", "第10章_コンクリート工事(施工)", "第11章_プレキャスト鉄筋コンクリート工事(施工)", "第12章_鉄骨工事(施工)", "第13章_仕上工事(施工)", "第14章_改修工事(施工)", "第15章_設備工事(施工)", "融合問題対策(施工)"];
+var mode = 'all';
+var STICKERS = [
+  {name:'赤', cls:'s0'}, {name:'黄', cls:'s1'}, {name:'緑', cls:'s2'}, {name:'青', cls:'s3'}, {name:'紫', cls:'s4'}
+];
+var CONFIDENCE = [
+  {id:'sure', label:'自信あり'}, {id:'unsure', label:'迷った'}, {id:'unknown', label:'わからない'}
+];
+var subject = 'すべて';
+var category = 'すべて';
+var current = 0;
+var selected = {};
+var answeredVisible = false;
+var order = ITEMS.map(function(_, i){return i;});
+var orderPos = 0;
+
+function itemKey(it){ return 'archStudy_' + it.id; }
+function favKey(it){ return 'archStudyFav_' + it.id; }
+function stickerKey(it){ return 'archStudySticker_' + it.id; }
+function saved(it){ try{return JSON.parse(localStorage.getItem(itemKey(it))||'{}');}catch(e){return {};} }
+function historyOf(it){ var d=saved(it); if(Array.isArray(d.history)) return d.history.slice(-5); if(d.selected && d.selected.length) return [!!d.ok]; return []; }
+function status(it){ var h=historyOf(it); if(!h.length) return 'unanswered'; return h[h.length-1] ? 'correct':'incorrect'; }
+function isFav(it){ return localStorage.getItem(favKey(it)) === '1'; }
+function stickerOf(it){ var v = localStorage.getItem(stickerKey(it)); return v === null ? '' : v; }
+function confidenceOf(it){ return saved(it).confidence || ''; }
+function confidenceLabel(v){ return v === 'sure' ? '自信あり' : v === 'unsure' ? '迷った' : v === 'unknown' ? '不明' : ''; }
+function confidenceClass(v){ return v === 'sure' ? 'good' : v === 'unsure' ? 'warn' : v === 'unknown' ? 'bad' : ''; }
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+function renderFilterButtons() {
+  var sr = document.getElementById('subjectRow');
+  sr.innerHTML = '';
+  ['すべて'].concat(SUBJECTS).forEach(function(s){
+    var b=document.createElement('button'); b.className='btn'+(s===subject?' active':''); b.textContent=s;
+    b.onclick=function(){
+      subject=s;
+      var available = categoryOptions();
+      if (available.indexOf(category) < 0) category = 'すべて';
+      renderFilterButtons();
+      renderIndexList();
+    };
+    sr.appendChild(b);
+  });
+  var cr = document.getElementById('categoryRow');
+  cr.innerHTML = '';
+  categoryOptions().forEach(function(c){
+    var b=document.createElement('button'); b.className='btn'+(c===category?' active':''); b.textContent=c;
+    b.onclick=function(){category=c; renderFilterButtons(); renderIndexList();};
+    cr.appendChild(b);
+  });
+}
+
+function categoryOptions() {
+  var arr = ['すべて'];
+  var seen = {};
+  ITEMS.forEach(function(it) {
+    if (subject !== 'すべて' && it.subject !== subject) return;
+    if (!seen[it.category]) {
+      seen[it.category] = true;
+      arr.push(it.category);
+    }
+  });
+  return arr;
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(function(el){ el.classList.remove('active'); });
+  var id = {all:'modeAll',wrong:'modeWrong',unanswered:'modeUnanswered',fav:'modeFav',note0:'modeNote0',note1:'modeNote1',note2:'modeNote2',note3:'modeNote3',note4:'modeNote4',correctUnsure:'modeCorrectUnsure',correctUnknown:'modeCorrectUnknown',wrongSure:'modeWrongSure',wrongUnsure:'modeWrongUnsure',wrongUnknown:'modeWrongUnknown'}[m];
+  if (id) document.getElementById(id).classList.add('active');
+  renderIndexList();
+}
+
+function filteredIndexes() {
+  var q = document.getElementById('search').value.toLowerCase();
+  var out = [];
+  ITEMS.forEach(function(it, i){
+    var hit = true;
+    if(subject !== 'すべて') hit = hit && it.subject === subject;
+    if(category !== 'すべて') hit = hit && it.category === category;
+    if(mode === 'wrong') hit = hit && status(it) === 'incorrect';
+    if(mode === 'unanswered') hit = hit && status(it) === 'unanswered';
+    if(mode === 'fav') hit = hit && isFav(it);
+    if(mode.indexOf('note') === 0) hit = hit && stickerOf(it) === mode.replace('note', '');
+    if(mode === 'correctUnsure') hit = hit && status(it) === 'correct' && confidenceOf(it) === 'unsure';
+    if(mode === 'correctUnknown') hit = hit && status(it) === 'correct' && confidenceOf(it) === 'unknown';
+    if(mode === 'wrongSure') hit = hit && status(it) === 'incorrect' && confidenceOf(it) === 'sure';
+    if(mode === 'wrongUnsure') hit = hit && status(it) === 'incorrect' && confidenceOf(it) === 'unsure';
+    if(mode === 'wrongUnknown') hit = hit && status(it) === 'incorrect' && confidenceOf(it) === 'unknown';
+    if(q) hit = hit && ((it.title + ' ' + it.category + ' ' + it.search).toLowerCase().indexOf(q) >= 0);
+    if(hit) out.push(i);
+  });
+  return out;
+}
+
+function renderIndexList() {
+  document.getElementById('headTitle').textContent = '一級建築士 問題集';
+  var indexes = filteredIndexes();
+  document.getElementById('headSub').textContent = indexes.length + ' / ' + ITEMS.length + '問';
+  renderWeakStats();
+  renderProgressStats();
+  var list = document.getElementById('list');
+  list.innerHTML = '';
+  indexes.forEach(function(i){
+    var it = ITEMS[i], st = status(it), a = document.createElement('a');
+    var sticker = stickerOf(it);
+    var conf = confidenceOf(it);
+    var confText = confidenceLabel(conf);
+    var confHtml = confText ? '<span class="mini-tag '+confidenceClass(conf)+'">'+esc(confText)+'</span>' : '';
+    var statusText = st === 'correct' ? '正解' : st === 'incorrect' ? '不正解' : '未回答';
+    var statusClass = st === 'correct' ? 'status-correct' : st === 'incorrect' ? 'status-incorrect' : 'status-unanswered';
+    var h = historyOf(it);
+    var historyHtml = '<span class="item-history">';
+    for (var j = 0; j < 5; j++) {
+      if (j < h.length) historyHtml += '<span class="history-dot '+(h[j] ? 'ok' : 'ng')+'">'+(h[j] ? '○' : '×')+'</span>';
+      else historyHtml += '<span class="history-dot">-</span>';
+    }
+    historyHtml += '</span>';
+    var mark = sticker === '' ? (isFav(it)?'★':'☆') : '<span class="sticker-mark '+STICKERS[Number(sticker)].cls+'"></span>';
+    a.href = '#'; a.className = 'item';
+    a.onclick = function(e){e.preventDefault(); order = filteredIndexes(); orderPos = order.indexOf(i); showQuestion(i);};
+    a.innerHTML = '<span class="badge '+st+'">'+(st==='correct'?'○':st==='incorrect'?'×':'未')+'</span>' +
+      '<span><b>'+esc(it.title)+'</b><br><span class="meta">'+confHtml+'<span class="mini-tag '+statusClass+'">'+statusText+'</span>'+historyHtml+' '+esc(it.category)+' / 選択肢 '+it.choices.length+'</span></span>' +
+      '<span>'+mark+'</span>';
+    list.appendChild(a);
+  });
+}
+
+function toggleStats() {
+  var panel = document.getElementById('statsPanel');
+  var mark = document.getElementById('statsToggleMark');
+  var open = panel.classList.toggle('hidden') === false;
+  mark.textContent = open ? '－' : '＋';
+  if (open) {
+    renderWeakStats();
+    renderProgressStats();
+  }
+}
+
+function renderWeakStats() {
+  var box = document.getElementById('weakStats');
+  if (!box) return;
+  var map = {};
+  ITEMS.forEach(function(it){
+    var h = historyOf(it);
+    if (!h.length) return;
+    var key = it.subject + ' / ' + it.category;
+    if (!map[key]) map[key] = {total:0, wrong:0};
+    map[key].total++;
+    if (!h[h.length - 1]) map[key].wrong++;
+  });
+  var rows = Object.keys(map).map(function(k){
+    var s = map[k];
+    return {name:k, total:s.total, wrong:s.wrong, rate:s.wrong / s.total};
+  }).filter(function(r){ return r.total >= 2 && r.wrong > 0; });
+  rows.sort(function(a,b){
+    var ac = a.name.split(' / ').slice(1).join(' / ');
+    var bc = b.name.split(' / ').slice(1).join(' / ');
+    var ai = CATEGORIES.indexOf(ac);
+    var bi = CATEGORIES.indexOf(bc);
+    if (ai < 0) ai = 9999;
+    if (bi < 0) bi = 9999;
+    return (ai - bi) || a.name.localeCompare(b.name, 'ja');
+  });
+  rows = rows.slice(0, 5);
+  if (!rows.length) {
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = '<div class="meta">現在の苦手分野ランキング</div>' + rows.map(function(r){
+    return '<div class="weak-line"><span>'+esc(r.name)+'</span><span class="weak-rate">直近× '+r.wrong+'/'+r.total+'</span></div>';
+  }).join('');
+}
+
+function renderProgressStats() {
+  var box = document.getElementById('progressStats');
+  if (!box) return;
+  var map = {};
+  ITEMS.forEach(function(it){
+    if (subject !== 'すべて' && it.subject !== subject) return;
+    if (category !== 'すべて' && it.category !== category) return;
+    var key = subject === 'すべて' ? it.subject : it.category;
+    if (!map[key]) map[key] = {total:0, answered:0, ok:0, ng:0};
+    map[key].total++;
+    var st = status(it);
+    if (st !== 'unanswered') map[key].answered++;
+    if (st === 'correct') map[key].ok++;
+    if (st === 'incorrect') map[key].ng++;
+  });
+  var rows = Object.keys(map).map(function(k){ var s = map[k]; s.name = k; return s; });
+  rows.sort(function(a,b){
+    var ai = subject === 'すべて' ? SUBJECTS.indexOf(a.name) : CATEGORIES.indexOf(a.name);
+    var bi = subject === 'すべて' ? SUBJECTS.indexOf(b.name) : CATEGORIES.indexOf(b.name);
+    if (ai < 0) ai = 9999;
+    if (bi < 0) bi = 9999;
+    return (ai - bi) || a.name.localeCompare(b.name, 'ja');
+  });
+  if (!rows.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="meta">分野別進捗</div>' + rows.map(function(r){
+    var okPct = r.total ? Math.round(r.ok * 100 / r.total) : 0;
+    var ngPct = r.total ? Math.round(r.ng * 100 / r.total) : 0;
+    var restPct = Math.max(0, 100 - okPct - ngPct);
+    return '<div class="progress-line">' +
+      '<div class="progress-top"><span>'+esc(r.name)+'</span><span>'+r.answered+'/'+r.total+'問</span></div>' +
+      '<div class="progress-bar"><span class="progress-ok" style="width:'+okPct+'%"></span><span class="progress-ng" style="width:'+ngPct+'%"></span><span class="progress-rest" style="width:'+restPct+'%"></span></div>' +
+      '<div class="meta">○ '+r.ok+' / × '+r.ng+' / 未 '+(r.total-r.answered)+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+function showIndex() {
+  document.getElementById('indexView').classList.remove('hidden');
+  document.getElementById('questionView').classList.add('hidden');
+  document.getElementById('bottomNav').classList.add('hidden');
+  renderFilterButtons();
+  renderIndexList();
+  window.scrollTo(0,0);
+}
+
+function showQuestion(i) {
+  current = i; selected = {}; answeredVisible = false;
+  var it = ITEMS[i];
+  document.getElementById('indexView').classList.add('hidden');
+  document.getElementById('questionView').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
+  document.getElementById('headTitle').textContent = it.title;
+  document.getElementById('headSub').textContent = it.subject + ' / ' + it.category + (it.rank ? ' / ランク ' + it.rank : '');
+  document.getElementById('prompt').innerHTML = it.prompt_html || esc(it.prompt);
+  document.getElementById('resultBox').style.display='none';
+  document.getElementById('explanationBlock').classList.add('hidden');
+  document.getElementById('rightBtn').textContent='採点';
+  document.getElementById('favBtn').textContent = isFav(it) ? '★ お気に入り' : '☆ お気に入り';
+  renderHistory(it);
+  renderStickerControls(it);
+  renderConfidenceControls(it);
+
+  var choices = document.getElementById('choices');
+  choices.innerHTML = '';
+  it.choices.forEach(function(ch){
+    var div=document.createElement('div'); div.className='choice'; div.dataset.num=ch.num;
+    div.innerHTML='<div class="choice-num">'+esc(ch.num)+'.</div><div class="choice-body">'+ch.html+'</div>';
+    div.onclick=function(){
+      if (it.correct.length <= 1) {
+        selected = {};
+        Array.prototype.forEach.call(choices.querySelectorAll('.choice'), function(el){ el.classList.remove('selected'); });
+        selected[ch.num] = true;
+        div.classList.add('selected');
+      } else {
+        selected[ch.num]=!selected[ch.num];
+        div.classList.toggle('selected', !!selected[ch.num]);
+      }
+    };
+    choices.appendChild(div);
+  });
+  window.scrollTo(0,0);
+}
+
+function renderHistory(it) {
+  var box = document.getElementById('historyPills');
+  var h = historyOf(it);
+  box.innerHTML = '';
+  for (var i = 0; i < 5; i++) {
+    var span = document.createElement('span');
+    if (i < h.length) {
+      span.className = 'history-dot ' + (h[i] ? 'ok' : 'ng');
+      span.textContent = h[i] ? '○' : '×';
+    } else {
+      span.className = 'history-dot';
+      span.textContent = '-';
+    }
+    box.appendChild(span);
+  }
+}
+
+function renderStickerControls(it) {
+  var box = document.getElementById('stickerRow');
+  var currentSticker = stickerOf(it);
+  box.innerHTML = '';
+  STICKERS.forEach(function(st, idx){
+    var b = document.createElement('button');
+    b.className = 'sticker-btn ' + st.cls + (currentSticker === String(idx) ? ' active' : '');
+    b.type = 'button';
+    b.title = st.name + '付箋';
+    b.setAttribute('aria-label', st.name + '付箋');
+    b.onclick = function(){ setSticker(idx); };
+    box.appendChild(b);
+  });
+  var clear = document.createElement('button');
+  clear.className = 'sticker-btn clear';
+  clear.type = 'button';
+  clear.textContent = '付箋なし';
+  clear.onclick = function(){ clearSticker(); };
+  box.appendChild(clear);
+}
+
+function setSticker(idx) {
+  var it = ITEMS[current], key = stickerKey(it), v = String(idx);
+  if (stickerOf(it) === v) localStorage.removeItem(key);
+  else localStorage.setItem(key, v);
+  renderStickerControls(it);
+}
+
+function clearSticker() {
+  var it = ITEMS[current];
+  localStorage.removeItem(stickerKey(it));
+  renderStickerControls(it);
+}
+
+function renderConfidenceControls(it) {
+  var box = document.getElementById('confidenceRow');
+  var currentConfidence = confidenceOf(it);
+  box.innerHTML = '';
+  CONFIDENCE.forEach(function(c){
+    var b = document.createElement('button');
+    b.className = 'btn' + (currentConfidence === c.id ? ' active' : '');
+    b.type = 'button';
+    b.textContent = c.label;
+    b.onclick = function(){ setConfidence(c.id); };
+    box.appendChild(b);
+  });
+}
+
+function setConfidence(value) {
+  var it = ITEMS[current];
+  var data = saved(it);
+  data.confidence = data.confidence === value ? '' : value;
+  localStorage.setItem(itemKey(it), JSON.stringify(data));
+  renderConfidenceControls(it);
+}
+
+function renderExplanations() {
+  var it = ITEMS[current];
+  var ex=document.getElementById('explanations');
+  ex.innerHTML='';
+  it.explanations.forEach(function(card, idx){
+    var div=document.createElement('div');
+    div.className='explanation';
+    div.innerHTML='<b>'+(idx+1)+'.</b><br>'+card.html;
+    ex.appendChild(div);
+  });
+  document.getElementById('explanationBlock').classList.remove('hidden');
+}
+
+function showExplanationOnly() {
+  answeredVisible = true;
+  var it = ITEMS[current];
+  var data = saved(it);
+  data.explained = true;
+  data.explainedTime = new Date().toISOString();
+  localStorage.setItem(itemKey(it), JSON.stringify(data));
+  document.getElementById('resultBox').style.display='none';
+  renderExplanations();
+  document.getElementById('rightBtn').textContent='次へ';
+  document.getElementById('explanationBlock').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function retryQuestion() {
+  showQuestion(current);
+}
+
+function arraysEqual(a,b) {
+  a=a.slice().sort(); b=b.slice().sort();
+  if(a.length!==b.length) return false;
+  for(var i=0;i<a.length;i++) if(String(a[i])!==String(b[i])) return false;
+  return true;
+}
+
+function grade() {
+  var it=ITEMS[current];
+  var chosen=Object.keys(selected).filter(function(k){return selected[k];});
+  if(!chosen.length) { alert('選択肢を選んでください'); return; }
+  var ok=arraysEqual(chosen, it.correct);
+  var previous = saved(it);
+  var history = Array.isArray(previous.history) ? previous.history.slice(-4) : [];
+  if (!history.length && previous.selected && previous.selected.length) history.push(!!previous.ok);
+  history.push(ok);
+  history = history.slice(-5);
+  previous.selected = chosen;
+  previous.correct = it.correct;
+  previous.ok = ok;
+  previous.history = history;
+  previous.time = new Date().toISOString();
+  localStorage.setItem(itemKey(it), JSON.stringify(previous));
+  renderHistory(it);
+  answeredVisible = true;
+  var box=document.getElementById('resultBox'), main=document.getElementById('resultMain');
+  box.className='result '+(ok?'ok':'ng'); box.style.display='block';
+  main.className='result-main '+(ok?'ok':'ng'); main.textContent=ok?'正解':'不正解';
+  document.getElementById('resultSub').innerHTML='正解: <b>'+esc(it.correct.join(', '))+'</b> / あなた: '+esc(chosen.join(', '));
+  renderExplanations();
+  document.getElementById('rightBtn').textContent='次へ';
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function rightAction() { if(answeredVisible) nextQ(); else grade(); }
+function prevQ() { if(orderPos>0){orderPos--; showQuestion(order[orderPos]);} else showIndex(); }
+function nextQ() { if(orderPos<order.length-1){orderPos++; showQuestion(order[orderPos]);} else showIndex(); }
+function toggleFav() {
+  var it=ITEMS[current], k=favKey(it);
+  if(isFav(it)) localStorage.removeItem(k); else localStorage.setItem(k,'1');
+  document.getElementById('favBtn').textContent = isFav(it) ? '★ お気に入り' : '☆ お気に入り';
+}
+function startRandom() {
+  var pool=filteredIndexes();
+  if(!pool.length){alert('対象の問題がありません');return;}
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)); var t=pool[i]; pool[i]=pool[j]; pool[j]=t;}
+  order=pool; orderPos=0; showQuestion(order[0]);
+}
+
+function reviewScore(it) {
+  var score = 0;
+  var st = status(it);
+  var conf = confidenceOf(it);
+  var data = saved(it);
+  if (st === 'incorrect') score += 100;
+  if (conf === 'unknown') score += 70;
+  if (conf === 'unsure') score += 50;
+  if (conf === 'sure' && st === 'incorrect') score += 35;
+  if (stickerOf(it) !== '') score += 40;
+  if (data.explained && st !== 'correct') score += 45;
+  return score;
+}
+
+function startReviewSet() {
+  var q = document.getElementById('search').value.toLowerCase();
+  var pool = [];
+  ITEMS.forEach(function(it, i){
+    if(subject !== 'すべて' && it.subject !== subject) return;
+    if(category !== 'すべて' && it.category !== category) return;
+    if(q && ((it.title + ' ' + it.category + ' ' + it.search).toLowerCase().indexOf(q) < 0)) return;
+    var score = reviewScore(it);
+    if(score > 0) pool.push({i:i, score:score});
+  });
+  if(!pool.length){alert('復習セットの対象がありません');return;}
+  pool.sort(function(a,b){ return b.score - a.score || Math.random() - 0.5; });
+  order = pool.slice(0, 30).map(function(x){ return x.i; });
+  for(var i=order.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)); var t=order[i]; order[i]=order[j]; order[j]=t;}
+  orderPos=0;
+  showQuestion(order[0]);
+}
+document.getElementById('search').addEventListener('input', renderIndexList);
+/* 起動時に教材読み込み後 showIndex を実行 */
+</script>
+<script>
+(function(){
+  const screen=document.getElementById('importScreen');
+  const status=document.getElementById('importStatus');
+  const input=document.getElementById('importFile');
+  const index=document.getElementById('indexView');
+  const DB_NAME='architect_study_private_v1';
+  function openDb(){return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded=()=>{req.result.createObjectStore('materials');};
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });}
+  async function loadStored(){
+    const db=await openDb();
+    return await new Promise((resolve,reject)=>{
+      const tx=db.transaction('materials','readonly');
+      const r=tx.objectStore('materials').get('questions');
+      r.onsuccess=()=>resolve(r.result);
+      r.onerror=()=>reject(r.error);
+      tx.oncomplete=()=>db.close();
+    });
+  }
+  async function saveStored(file){
+    const db=await openDb();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction('materials','readwrite');
+      tx.objectStore('materials').put(file,'questions');
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+      tx.onabort=()=>reject(tx.error||new Error('保存に失敗しました'));
+    });
+    db.close();
+  }
+  async function useFile(file,save){
+    status.textContent='教材を読み込んでいます…';
+    // File をIndexedDBに保存することで、文字列と画像の二重保存を避ける
+    const txt=await file.text();
+    const parsed=JSON.parse(txt);
+    if(!Array.isArray(parsed)||!parsed.length||!parsed[0].choices||!parsed[0].prompt)throw new Error('教材ファイルの形式が違います');
+    if(save){status.textContent='教材を端末に保存しています…';await saveStored(file);}
+    ITEMS=parsed;
+    document.getElementById('headSub').textContent=ITEMS.length+'問';
+    screen.classList.add('hidden');index.classList.remove('hidden');
+    showIndex();
+  }
+  input.addEventListener('change',async()=>{
+    const file=input.files&&input.files[0];if(!file)return;
+    try{await useFile(file,true);}catch(e){status.textContent='読み込み失敗: '+e.message+'。容量不足の場合は端末の空きを確認してください。';}
+  });
+  document.getElementById('changeMaterial').addEventListener('click',()=>{
+    if(confirm('教材を再読み込みしますか？（既存の学習履歴は残ります）')){screen.classList.remove('hidden');index.classList.add('hidden');status.textContent='教材ファイルを選択してください';input.value='';}
+  });
+  (async()=>{try{
+    const file=await loadStored();
+    if(file)await useFile(file,false);
+    else status.textContent='教材が未登録です。下からJSONファイルを選択してください。';
+  }catch(e){status.textContent='保存済み教材を開けませんでした。再読み込みしてください: '+e.message;}})();
+})();
+</script>
+</body>
+</html>
