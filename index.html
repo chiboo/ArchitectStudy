@@ -126,6 +126,21 @@ html[data-theme="dark"] .progress-bar{background:#344256}
 .v4-note-wrap{margin:12px 0}.v4-muted{font-size:12px;color:var(--muted)}
 .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.calendar-cell{min-height:42px;padding:5px 2px;border-radius:7px;text-align:center;background:var(--soft);font-size:12px}.calendar-cell b{display:block}.calendar-cell small{font-size:10px;color:var(--muted)}
 .choice.revealed{border-color:var(--blue)}.choice .reveal{display:block;font-size:12px;font-weight:800;color:var(--blue);margin-top:6px}
+/* v5: compact question layout and explicit ungraded next */
+body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+#questionView{padding-top:8px}
+#questionView .question-progress{margin:4px 0 8px}
+#questionView .question-head{margin:8px 0 5px}
+#questionView .section{margin:8px 0 5px}
+#questionView .prompt{padding:12px 13px;margin:5px 0 8px;line-height:1.55;min-height:0!important}
+#questionView .prompt p{margin:0 0 6px}
+#questionView .prompt p:last-child{margin-bottom:0}
+#questionView .choice{padding:10px 11px;margin:7px 0;gap:7px;min-height:0;line-height:1.55}
+#questionView .v4-tools{margin:5px 0}
+#questionView .panel{margin:9px 0;padding:10px}
+.bottom{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+.bottom .btn{min-width:0;min-height:42px;padding:6px 3px;font-size:14px;border-radius:9px}
+@media(max-width:390px){.bottom .btn{font-size:13px}}
 </style>
 </head>
 <body>
@@ -251,6 +266,7 @@ html[data-theme="dark"] .progress-bar{background:#344256}
 <nav class="bottom hidden" id="bottomNav">
   <button class="btn" onclick="prevQ()">前へ</button>
   <button class="btn" onclick="showIndex()">一覧</button>
+  <button class="btn" onclick="nextQ()" id="skipBtn" title="採点・履歴保存をせず次の問題へ">次へ</button>
   <button class="btn primary" onclick="rightAction()" id="rightBtn">採点</button>
 </nav>
 
