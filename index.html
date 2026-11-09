@@ -120,6 +120,9 @@ html[data-theme="dark"] .progress-bar{background:#344256}
 #search{background:var(--input);color:var(--ink)}
 #list{margin-top:12px}
 @media(max-width:520px){.filter-group summary{padding:11px}.filter-group .filter-chips{padding:9px!important}.quick-filter-row .btn{flex:1 1 auto}}
+/* v7: 章・分野は文字数にかかわらず必ず1行に1項目 */
+#categoryRow.filter-chips{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;gap:7px!important}
+#categoryRow.filter-chips .btn{display:block!important;width:100%!important;flex:none!important;text-align:left!important;border-radius:10px!important;padding:10px 12px!important;min-height:42px!important;white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.4!important}
 /* v4 */
 .v4-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.v4-tools .btn{flex:1;min-width:125px}
 .v4-note{width:100%;min-height:80px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--input);color:var(--ink);padding:10px;font:inherit}
